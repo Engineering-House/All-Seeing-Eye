@@ -21,7 +21,7 @@ face_classifier = cv.CascadeClassifier(
 
 #Check if the camera is attached
 if not cap.isOpened():
-    print("Cannot open camera 3:")
+    print("Cannot open camera")
     exit()
 
 while True:
@@ -44,7 +44,7 @@ while True:
         if curString[:7:] == 'data: ': 
             curString = curString[8:]
 
-            print(curString)
+            print(repr(curString))
 
             curString = curString.split(', ')
 

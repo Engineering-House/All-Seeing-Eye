@@ -11,13 +11,16 @@ pointEye <point 1>, <point 2>, <point 3>
 select a point in 3D cartesion coordinates and move eye to that pos
 
 dumpData <cmd> <time>
-cmd = t: dumpData = truez
+cmd = t: dumpData = true
 cmd = f: dumpData = false
 cmd = c: change sendRate to time
 time: transfer speed in ms
 
 sendData
 sends data
+
+Data packet format
+<yaw>, <pitch>, <roll>, <error code>
 */
 
 /*
@@ -219,7 +222,7 @@ void loop() {
 
 //Send relative data through serial
 void sendData(){
-  Serial.printf("data: %d ,%d ,%d, ", eyeAngle[0], eyeAngle[1], eyeAngle[2]);
+  Serial.printf("data: %d ,%d ,%d , ", eyeAngle[0], eyeAngle[1], eyeAngle[2]);
   //Serial.printf("%d, %d, %d", plateAngle[0], plateAngle[1], plateAngle[2]);
   //Serial.print(" ");
   Serial.println(erno);
