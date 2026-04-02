@@ -68,7 +68,7 @@ int erno = 0; //Error number, changed if program runs into an error
 
 //Motor global variables
 //Servo pins
-int servoPin[4] = {13, -1, -1, -1};
+int servoPin[4] = {27, 14, 12, 13};
 
 //Servo objects
 Servo topEyelid;
@@ -121,7 +121,7 @@ void setup() {
   for(int i = 0; i < 4; i++){
     motors[i]->setPeriodHertz(50);
     motors[i]->attach(servoPin[i], 200, 5000); //default 1000us to 2000us
-    motors[i]->write(0);
+    motors[i]->write(90);
   }
 }
 
@@ -136,10 +136,15 @@ void loop() {
   if (Serial.available()){
     digitalWrite(2, HIGH);
     readSerial(); //Calls function that reads the serial and stores the value in global var serialIn
+    int maxDifflect = 55;
 
     if (!strncmp(serialIn, "moveMotr", 8)){
       int motor = int(serialIn[9]) - int('0'); //Find the motor from the string
       int position = atoi(serialIn + 10); //Find the position from the string
+
+      if ((motor == 2 || motor == 3) && position < maxDifflect){
+        position = maxDifflect;
+      }
 
       Serial.printf("Moving motor %i to positiong %i\n", motor, position);
       motors[motor]->write(position); //Write to the motor
@@ -154,13 +159,11 @@ void loop() {
         int j = 0;
 
         while(!(serialIn[index] == ',') && !(serialIn[index] == '\0')){
-          if(int(serialIn[index]) >= int('0') && int(serialIn[index]) <= int('9')){
+          if(int(serialIn[index]) >= int('0') && int(serialIn[index]) <= int('9') || int(serialIn[index]) == int('-') || int(serialIn[index]) == int('.')){
             temp[j] = serialIn[index];
-            //Serial.printf("vector %d, char %c\n", i, serialIn[index]);
             j++;
           }
 
-          //Serial.println(serialIn[index]);
           index++;
         }
 
@@ -169,24 +172,40 @@ void loop() {
         point[i] = atoi(temp);
       }
 
-      //Serial.println("Printing positions");
       Serial.println(point[0]);
       Serial.println(point[1]);
       Serial.println(point[2]);
 
-      
-      double length = sqrt(point[0]*point[0] + point[1]*point[1] + point[2]*point[2]);
-      double unitVector[3] = {double(point[0])/length, double(point[1])/length, double(point[2])/length};
+      double topEyePos = 0;
+      double bottomEyePos = 0;
 
-      double topEyePos = M_PI/2 - acos(unitVector[0]); //Angle of unit vecotr in Z X plane
-      double bottomEyePos = M_PI/2 - acos(unitVector[1]); //Angel of unit vector in Z Y plane
+      if (!((point[0] == 0) && (point[1] == 0) && (point[2] == 0))){
+        double length = sqrt(point[0]*point[0] + point[1]*point[1] + point[2]*point[2]);
+        double unitVector[3] = {double(point[0])/length, double(point[1])/length, double(point[2])/length};
+    
+        topEyePos = M_PI/2 - acos(unitVector[0]); //Angle of unit vecotr in Z X plane
+        bottomEyePos = M_PI/2 - acos(unitVector[1]); //Angel of unit vector in Z Y plane
 
-      Serial.println(length);
-      Serial.printf("vec1 %d, vec2 %d, vec3, %d", unitVector[0], unitVector[1], unitVector[2]);
-      Serial.println(M_PI);
-      Serial.println(acos(.5));
-      //Serial.println(topEyePos);
-      //Serial.println(bottomEyePos);
+        topEyePos = topEyePos * (180/M_PI);
+        bottomEyePos = bottomEyePos * (180/M_PI);
+
+      }
+
+      topEyePos += 90;
+      bottomEyePos += 90;
+
+      if (topEyePos < maxDifflect){
+        topEyePos = maxDifflect;
+      }
+      if (bottomEyePos < maxDifflect){
+        bottomEyePos = maxDifflect;
+      }
+      Serial.println(topEyePos);
+      Serial.println(bottomEyePos);
+
+      motors[3]->write(topEyePos); //Write to the motor
+      motors[2]->write(bottomEyePos); //Write to the motor
+
 
 
     } else if (!strncmp(serialIn, "dumpData", 8)){
@@ -385,7 +404,7 @@ void readMPU(void * pvParameters){
   *     Setup core 0    *
   \*********************/
 
-  Wire.begin(21,22);
+  Wire.begin(35,34);
   Serial.printf("Starting mpu readings on core %i\n", xPortGetCoreID());
 
   // initialize sensor
