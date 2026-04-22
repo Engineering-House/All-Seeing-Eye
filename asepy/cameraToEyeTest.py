@@ -15,6 +15,10 @@ eyeString = Queue(maxsize = 30)
 eyeAngle = [0, 0, 0] #pos of the eye angle
 printSerial = True
 
+lastSend = time.time()
+curString = " "
+
+
 
 def readSerial():
     global eyeSer, eyeAngle, printSerial, eyeString
@@ -25,33 +29,33 @@ def readSerial():
             #print(curString, repr(curString))
             if curString == '':
                 continue
-
-            #Should have a check here for if it's empty
-            if printSerial:
-                print("eyeSerial: " + curString) #print the serial stuffs
-
-            #Parce data and put info in global vars
-            #If not parced properly put in que for other thread
-            if curString[:7:] == 'data: ': 
-                curString = curString[8:]
-
-                print(repr(curString))
-
-                curString = curString.split(', ')
-
-                if not(curString[curString.len() - 1]) == 0:
-                    print("error number: ")
-                    print(curString[curString.len() - 1])
-                
-                eyeAngle = [curString[0], curString[1], curString[2]]
             else:
-                eyeString.put(curString)
+                #Should have a check here for if it's empty
+                if printSerial:
+                    print("eyeSerial: " + curString) #print the serial stuffs
+
+                #Parce data and put info in global vars
+                #If not parced properly put in que for other thread
+                if curString[:7:] == 'data: ': 
+                    curString = curString[8:]
+
+                    print(repr(curString))
+
+                    curString = curString.split(', ')
+
+                    if not(curString[curString.len() - 1]) == 0:
+                        print("error number: ")
+                        print(curString[curString.len() - 1])
+                    
+                    eyeAngle = [curString[0], curString[1], curString[2]]
+                #else:
+                    #eyeString.put(curString)
 
 
 
 
 def main():
-    global eyeAngle, printSerial
+    global eyeAngle, printSerial, lastSend, curString
 
     cap = cv.VideoCapture(1)
     
@@ -114,14 +118,17 @@ def main():
             centerY = faces[largestFace][1] - .5*(height - faces[largestFace][3])
 
             height, width = translated_image.shape[:2]
-            x = 180 * centerX // (width//2) + 90
-            y = 180 * centerY // (height//2) + 90
+            print(centerX, ", ", centerY)
+            x = int(180 * centerX // (width//2) + 90)
+            y = int(180 * centerY // (height//2) + 90)
 
             print(x, y)
 
-            info = "pointEye" + str(x) + ", " + str(y) + ", " + str(distance)
-            info = info.encode('utf-8')
-            eyeSer.write(info)
+            curString = "pointEye " + str(x) + ", " + str(y) + ", " + str(distance)
+
+        if (time.time() > lastSend + .1):
+            eyeSer.write(curString.encode('utf-8'))
+            lastSend = time.time()
 
 
         #Should be removed when there is no desktop enviroment
@@ -135,6 +142,7 @@ def main():
     #Realease the camera
     cap.release()
     cv.destroyAllWindows()
+    exit
 
     
 

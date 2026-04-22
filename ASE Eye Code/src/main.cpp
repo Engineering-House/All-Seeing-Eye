@@ -94,16 +94,17 @@ void setup() {
   //Start the serial
   Serial.begin(115200);
 
+  /*
   //Start readMPU task on core 0
   xTaskCreatePinnedToCore(
-      readMPU, /* Function to implement the task */
-      "Task1", /* Name of the task */
-      10000,  /* Stack size in words */
-      NULL,  /* Task input parameter */
-      0,  /* Priority of the task */
-      &Task1,  /* Task handle. */
-      0); /* Core where the task should run */
-
+      readMPU, // Function to implement the task 
+      "Task1", // Name of the task 
+      10000,  // Stack size in words 
+      NULL,  // Task input parameter 
+      0,  // Priority of the task 
+      &Task1,  // Task handle. 
+      0); //Core where the task should run 
+  */
 
   //Setup onboard LED to debugging
   pinMode(2, OUTPUT);
@@ -136,6 +137,8 @@ void loop() {
   if (Serial.available()){
     digitalWrite(2, HIGH);
     readSerial(); //Calls function that reads the serial and stores the value in global var serialIn
+
+    
     int maxDifflect = 55;
 
     if (!strncmp(serialIn, "moveMotr", 8)){
@@ -150,7 +153,6 @@ void loop() {
       motors[motor]->write(position); //Write to the motor
       
     } else if (!strncmp(serialIn, "pointEye", 8)){
-      Serial.println("start");
       int index = 9;
       int point[3] = { 0 };
 
@@ -171,10 +173,6 @@ void loop() {
         temp[j + 1] = '\0';
         point[i] = atoi(temp);
       }
-
-      Serial.println(point[0]);
-      Serial.println(point[1]);
-      Serial.println(point[2]);
 
       double topEyePos = 0;
       double bottomEyePos = 0;
@@ -200,13 +198,18 @@ void loop() {
       if (bottomEyePos < maxDifflect){
         bottomEyePos = maxDifflect;
       }
-      Serial.println(topEyePos);
+      Serial.print("Pointing eye to ");
+      Serial.print(point[0]);
+      Serial.print(", ");
+      Serial.print(point[1]);
+      Serial.print(". By moving motors to ");
+      Serial.print(topEyePos);
+      Serial.print(", ");
       Serial.println(bottomEyePos);
 
       motors[3]->write(topEyePos); //Write to the motor
       motors[2]->write(bottomEyePos); //Write to the motor
-
-
+      
 
     } else if (!strncmp(serialIn, "dumpData", 8)){
       if (serialIn[9] == 't'){ //Start sending data
@@ -272,7 +275,7 @@ void readSerial(){
     }
 
     index++;
-    delay(10);
+    //delay(1);
   }
 }
 
@@ -282,7 +285,8 @@ void readSerial(){
 *                          *
 *   Code runing on core 0  *
 *                          *
-\**************************/
+\*************************
+
 
 //Uses mahony filtering to stabalize values
 void Mahony_update(float ax, float ay, float az, float gx, float gy, float gz, float deltat) {
@@ -369,7 +373,7 @@ void readMPU(void * pvParameters){
 
   /*********************\
   *    Globals core 0   *
-  \*********************/
+  \*********************
 
   int MPU_addr = 0x68;
   int cal_gyro = 1;  //set to zero to use gyro calibration offsets below.
@@ -402,7 +406,7 @@ void readMPU(void * pvParameters){
 
   /*********************\
   *     Setup core 0    *
-  \*********************/
+  \*********************
 
   Wire.begin(35,34);
   Serial.printf("Starting mpu readings on core %i\n", xPortGetCoreID());
@@ -416,7 +420,7 @@ void readMPU(void * pvParameters){
 
   /*********************\
   *     Loop core 0     *
-  \*********************/
+  \*********************
 
   while(1){
     static unsigned int i = 0; //loop counter
@@ -534,3 +538,4 @@ void readMPU(void * pvParameters){
   }
 }
 
+*/

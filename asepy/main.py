@@ -45,7 +45,7 @@ def main():
 
         #time.sleep(2)
 
-        print("Connected to /dev/ttyUSB0 at 9600 baud")
+        print("Connected to /dev/ttyUSB0 at 115200 baud")
     except serial.SerialException as e:
         print(f"Failed to connect: {e}")
         exit(1)
