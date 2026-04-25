@@ -82,7 +82,7 @@ Servo* motors[4] = {&topEyelid, &bottomEyelid, &topEye, &bottomEye};
 * Funcition declarations core 1 *
 \*******************************/
 
-void readSerial();
+char readSerial();
 void sendData();
 void readMPU(void * pvParameters);
 
@@ -134,11 +134,9 @@ void loop() {
   digitalWrite(2, LOW);
   
   //If there is something in the serial
-  if (Serial.available()){
-    digitalWrite(2, HIGH);
-    readSerial(); //Calls function that reads the serial and stores the value in global var serialIn
+  char state = readSerial(); //Calls function that reads the serial and stores the value in global var serialIn
 
-
+  if(state) {
     int maxDifflect = 55;
 
     if (!strncmp(serialIn, "moveMotr", 8)){
@@ -149,7 +147,7 @@ void loop() {
         position = maxDifflect;
       }
 
-      Serial.printf("Moving motor %i to positiong %i\n", motor, position);
+      Serial.printf("Moving motor %i to position %i\n", motor, position);
       motors[motor]->write(position); //Write to the motor
       
     } else if (!strncmp(serialIn, "pointEye", 8)){
@@ -231,11 +229,11 @@ void loop() {
     }
   }
 
-  if(dumpData){
-    digitalWrite(2, HIGH);
-  } else{
-    digitalWrite(2, LOW);
-  }
+  // if(dumpData){
+  //   digitalWrite(2, HIGH);
+  // } else{
+  //   digitalWrite(2, LOW);
+  // }
 
   //If esp should dump data & enough time has elapsed, send data
   if(dumpData && millis() >= (lastSend + sendRate)){
@@ -252,15 +250,10 @@ void sendData(){
   Serial.println(erno);
 }
 
+int serialInIndex = 0;
 
-//Read the serial and put it in an array, returns pointer to the array
-void readSerial(){
-  //Reset the current array
-  for (int i = 0; i < sizeof(serialIn)/sizeof(serialIn[0]); i++){
-    serialIn[i] = 0;
-  }
-
-  int index = 0;
+//Read the serial and put it in an array, returns 1 when full command is ready to be parsed
+char readSerial(){
   int startTime = millis();
 
   while(Serial.available() && (millis() < startTime + 1000)){
@@ -268,17 +261,23 @@ void readSerial(){
 
     //If the end of the command is reached, return the message
     if (incomingChar == '\n'){
-      serialIn[index] = '\0';
-      serialLen = index;
-      return;
-
+      serialIn[serialInIndex] = '\0';
+      serialLen = serialInIndex;
+      serialInIndex = 0;
+      Serial.printf("\n     len: %d\r\n", serialLen);
+      return 1;
+    } else if(incomingChar == '\b') {
+      Serial.print("\b \b");
+      serialInIndex--;
     } else{ //Add char onto the array of chars
-      serialIn[index] = incomingChar;
+      serialIn[serialInIndex] = incomingChar;
+      serialInIndex++;
+      Serial.print(incomingChar);
     }
-
-    index++;
     //delay(1);
   }
+
+  return 0;
 }
 
 

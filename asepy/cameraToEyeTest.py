@@ -7,9 +7,9 @@ from queue import Queue
 from threading import Thread
 from ultralytics import YOLO
 
-#open serial ports
-# eyeSer = serial.Serial('COM5', 115200)
-# eyeSer.timeout = 0.02
+# open serial ports
+eyeSer = serial.Serial('/dev/ttyUSB1', 115200)
+eyeSer.timeout = 0.02
 eyeString = Queue(maxsize = 30)
 
 eyeAngle = [0, 0, 0] #pos of the eye angle
@@ -20,36 +20,36 @@ printString = ["", "", "", ""]
 
 yoloModel = YOLO("yolo11n.pt")
 
-# def readSerial():
-#     global eyeSer, eyeAngle, printSerial, eyeString
-#     while True:
-#         #If there is something in the eye serial buffer, read it, strip it, put it in the eye que and print
-#         if eyeSer.readable:
-#             curString = eyeSer.readline().decode('utf-8').strip()
-#             #print(curString, repr(curString))
-#             if curString == '':
-#                 continue
-#             else:
-#                 #Should have a check here for if it's empty
-#                 if printSerial:
-#                     print("eyeSerial: " + curString) #print the serial stuffs
+def readSerial():
+    global eyeSer, eyeAngle, printSerial, eyeString
+    while True:
+        #If there is something in the eye serial buffer, read it, strip it, put it in the eye que and print
+        if eyeSer.readable:
+            curString = eyeSer.readline().decode('utf-8').strip()
+            #print(curString, repr(curString))
+            if curString == '':
+                continue
+            else:
+                #Should have a check here for if it's empty
+                if printSerial:
+                    print("eyeSerial: " + curString) #print the serial stuffs
 
-#                 #Parce data and put info in global vars
-#                 #If not parced properly put in que for other thread
-#                 if curString[:7:] == 'data: ': 
-#                     curString = curString[8:]
+                #Parce data and put info in global vars
+                #If not parced properly put in que for other thread
+                if curString[:7:] == 'data: ': 
+                    curString = curString[8:]
 
-#                     print(repr(curString))
+                    print(repr(curString))
 
-#                     curString = curString.split(', ')
+                    curString = curString.split(', ')
 
-#                     if not(curString[curString.len() - 1]) == 0:
-#                         print("error number: ")
-#                         print(curString[curString.len() - 1])
+                    if not(curString[curString.len() - 1]) == 0:
+                        print("error number: ")
+                        print(curString[curString.len() - 1])
                     
-#                     eyeAngle = [curString[0], curString[1], curString[2]]
-#                 #else:
-#                     #eyeString.put(curString)
+                    eyeAngle = [curString[0], curString[1], curString[2]]
+                #else:
+                    #eyeString.put(curString)
 
 # consumes img and uses it to draw on if displaying
 def yoloDetectFaces(img, display = True, confMin = 0.5):
@@ -146,8 +146,8 @@ def main():
 
         if (time.time() > lastSend + .1 and printString[2] != "" and printString[3] != ""):
             print(printString[2], printString[3])
-            # eyeSer.write(printString[2].encode('utf-8'))
-            # eyeSer.write(printString[3].encode('utf-8'))
+            eyeSer.write(printString[2].encode('utf-8'))
+            eyeSer.write(printString[3].encode('utf-8'))
             lastSend = time.time()
             printString[2] = ""
             printString[3] = ""
