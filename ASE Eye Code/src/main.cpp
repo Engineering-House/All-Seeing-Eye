@@ -138,7 +138,7 @@ void loop() {
     digitalWrite(2, HIGH);
     readSerial(); //Calls function that reads the serial and stores the value in global var serialIn
 
-    
+
     int maxDifflect = 55;
 
     if (!strncmp(serialIn, "moveMotr", 8)){
@@ -226,6 +226,8 @@ void loop() {
 
     } else if (!strncmp(serialIn, "sendData", 8)){ //If serial requests data, send data
       sendData();
+    } else{
+      Serial.print("Command not recognized\n");
     }
   }
 
