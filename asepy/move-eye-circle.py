@@ -9,7 +9,6 @@ eyeSer.timeout = 0.02
 eyeString = Queue(maxsize = 30)
 
 def readSerial():
-    print("asdasd")
     while True:
         if eyeSer.readable:
             curString = eyeSer.readline().decode('utf-8').strip()
@@ -34,5 +33,5 @@ def main():
         printText("pointEye -10, -10, 0")
         printText("pointEye -10, 10, 0")
 
-
-main()
+if __name__ == "__main__":
+    main()
